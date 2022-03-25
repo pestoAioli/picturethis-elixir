@@ -1,17 +1,21 @@
 const production = !process.env.ROLLUP_WATCH;
 module.exports = {
   theme: {
+    fontSize: {
+      '69xl': '20rem',
+      '10xl': '10rem'
+    },
     fontFamily: {
       logo: "logo"
     },
-    fontSize: {
-      '69xl': '20rem'
-    },
     extend: {
-     animation: {
-       'bouncey': 'bounce 5s ease infinite',
-       'bouncer': 'bounce 4s ease infinite'
-     }
+      animation: {
+        'bouncey': 'bounce 3s ease infinite',
+        'bouncer': 'bounce 2s ease infinite'
+      },
+      boxShadow: {
+        '69xl': '6px 10px 0px rgba(0, 0, 0, 1)'
+      }
     },
   },
   variants: {

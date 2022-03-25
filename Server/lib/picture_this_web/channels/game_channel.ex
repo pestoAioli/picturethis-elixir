@@ -4,7 +4,7 @@ defmodule PictureThisWeb.GameChannel do
   use PictureThisWeb, :channel
   require Logger
 
-  intercept(["start-game"])
+  intercept(["start-game", "draw-replay"])
 
   @impl true
   def join("game:" <> id, _payload, socket) do
@@ -72,7 +72,7 @@ defmodule PictureThisWeb.GameChannel do
   # broadcast to everyone in the current topic (game:gameId).
   def handle_in("guess", payload, socket) do
     broadcast(socket, "guess-message", payload)
-
+    # name = payload["name"]
     guess =
       payload["userInput"]
       |> String.trim()
@@ -99,9 +99,9 @@ defmodule PictureThisWeb.GameChannel do
   end
 
   @impl true
-  def handle_out("draw-replay", _payload, socket) do
+  def handle_out("draw-replay", payload, socket) do
     unless socket.assigns.is_drawing? do
-      Logger.debug("replay")
+      push(socket, "draw-replay", payload)
     end
 
     {:noreply, socket}

@@ -1,6 +1,5 @@
 <script>
-  import { beforeUpdate, afterUpdate } from 'svelte';
-
+  import { beforeUpdate, afterUpdate, getContext } from 'svelte';
   export let gameSocket;
 
   // enabling chat to autoscroll
@@ -24,8 +23,7 @@
   const playerName = 'Paula';
 
   //mock msgs
-  let msgs = [
-  ];
+  let msgs = [];
 
   //mock timestamp
   let timestamp = 3;
@@ -35,26 +33,33 @@
       handleSubmit();
     }
   }
+  const user = getContext('name');
 
   function handleSubmit() {
+    console.log(user);
     //if user input is empty, do not add message
     if (userInput === '') {
       return;
     }
     timestamp++;
-   //push guess/message to socket
-    gameSocket.push('guess', { userInput });
+    //push guess/message to socket
+    gameSocket.push('guess', { userInput, $user });
     userInput = '';
   }
 
   gameSocket.on('guess-message', (mzg) => {
     console.log('mzggg', mzg);
-    msgs = [...msgs, { user: 'dan', text: mzg.userInput }];
+    msgs = [...msgs, { user: `🥹${$user}`, text: mzg.userInput }];
   });
 </script>
 
-<div class="flex flex-col h-600px max-w-xs border-2 border-solid border-black bg-white">
-  <div class="h-600px max-w-xs text-left flex-auto overflow-y-auto flex flex-col items-end" bind:this={scroll}>
+<div
+  class="flex flex-col h-600px w-96 border-4 border-solid border-black rounded-md shadow-69xl bg-white"
+>
+  <div
+    class="h-600px w-96 text-left flex-auto overflow-y-auto flex flex-col items-end"
+    bind:this={scroll}
+  >
     <ul>
       {#each msgs as { user, text, guess }}
         {#if guess}
@@ -66,7 +71,7 @@
     </ul>
   </div>
 
-  <div >
+  <div>
     <input
       type="text"
       name=""

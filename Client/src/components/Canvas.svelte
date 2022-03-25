@@ -1,6 +1,7 @@
 <script>
   export let gameSocket;
   import { onMount } from 'svelte';
+  import Button from '../components/Button.svelte';
   let penColor;
   let painting;
   let canvas;
@@ -43,18 +44,15 @@
   function startGame() {
     gameSocket.push('start');
   }
-
-  gameSocket.on('start-game', () => {
-    const gameTimer = setInterval(() => {
-      time = time - 1;
-      if (time === 0) {
-        time = 60;
-        // alert('round over');
-        clearInterval(gameTimer);
-        return;
-      }
-    }, 1000);
-  });
+  // const gameTimer = setInterval(() => {
+  //     time = time - 1;
+  //     if (time === 0) {
+  //       time = 60;
+  //       // alert('round over');
+  //       clearInterval(gameTimer);
+  //       return;
+  //     }
+  //   }, 1000);
 
   function startPosition(e) {
     painting = true;
@@ -64,7 +62,7 @@
   function finishedPosition(broadcast) {
     painting = false;
     ctx.beginPath();
-    if(broadcast) gameSocket.push('finished-position');
+    if (broadcast) gameSocket.push('finished-position');
     console.log('finishedposition');
   }
 
@@ -107,17 +105,17 @@
     {/if}
   </div>
   <canvas
-    class="bg-white border-2 border-solid border-black block cursor-crosshair h-canvas w-canvas"
+    class="bg-white border-4 border-solid border-black rounded-md shadow-69xl block h-canvas w-canvas"
     id="myCanvas"
     on:mousemove={isDrawing ? handleDraw : null}
     on:mousedown={isDrawing ? startPosition : null}
     on:mouseup={isDrawing ? () => finishedPosition(true) : null}
   />
 
-  <div class="flex gap-4 items-center h-12">
-    <p>{time}</p>
-    <button on:click={clear}> Clear </button>
-    <button on:click={startGame}> Start </button>
+  <div class="flex gap-4 items-center h-12 mt-8">
+    <!-- <p>{time}</p> -->
+    <button on:click={clear} class="h-16 w-36 text-white bg-blue-500 rounded-lg flex justify-center items-center hover:cursor-pointer hover:bg-red-500 active:bg-green-400">Clear</button>
+    <button on:click={startGame} class="h-16 w-36 text-white bg-blue-500 rounded-lg flex justify-center items-center hover:cursor-pointer hover:bg-red-500 active:bg-green-400">Start Game</button>
     <input class="h-8" type="color" bind:value={penColor} />
     <input type="range" min="1" max="10" bind:value={lineWidth} />
     <div>
