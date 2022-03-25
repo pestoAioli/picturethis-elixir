@@ -7,16 +7,16 @@ defmodule PictureThis.GameServer do
     :topic,
     :id,
     :score_board,
-    :current_drawer,
     :total_rounds,
     :current_round,
     :current_prompt,
-    players: [],
+    players: %{},
     status: :pending
   ]
 
   @impl true
   def init(args) do
+    Logger.debug("init")
     {:ok, args}
   end
 
@@ -51,10 +51,10 @@ defmodule PictureThis.GameServer do
     |> Base.encode64(padding: false)
   end
 
-  def join(game_id, player_id) do
+  def join(game_id, player_id, player_name) do
     game_id
     |> via_tuple()
-    |> GenServer.call({:join, player_id})
+    |> GenServer.call({:join, {player_id, player_name}})
   end
 
   def start_game(game_id) do
@@ -70,30 +70,90 @@ defmodule PictureThis.GameServer do
   end
 
   @impl true
-  def handle_call({:join, player_id}, _from, state) do
-    {:reply, :ok, %{state | players: [player_id | state.players]}}
+  def handle_call({:join, {player_id, player_name}}, _from, state) do
+    {:reply, :ok, %{state | players: Map.put(state.players, player_id, player_name)}}
   end
 
   def handle_call(:start, _from, state) do
     # choose drawer choose prompt
     prompt =
-      ~w(Angel Eyeball Pizza Angry Fireworks Pumpkin Baby Flower Rainbow Beard Flying saucer Recycle Bible Giraffe Sand-castle Bikini Glasses Snowflake Book High-heel Stairs Bucket Ice-cream-cone Starfish Bumble-bee Igloo Strawberry Butterfly Lady-bug Sun Camera Lamp Tire Cat Lion Toast Church Mailbox Toothbrush Crayon Night Toothpaste Dolphin Nose Truck Egg Olympics Volleyball Eiffel Tower Peanut)
+      [
+        "Angel",
+        "Eyeball",
+        "Pizza",
+        "Angry",
+        "Fireworks",
+        "Pumpkin",
+        "Baby",
+        "Flower",
+        "Rainbow",
+        "Beard",
+        "Flying saucer",
+        "Recycle",
+        "Bible",
+        "Giraffe",
+        "Sand castle",
+        "Bikini",
+        "Glasses",
+        "Snowflake",
+        "Book",
+        "High heels",
+        "Stairs",
+        "Bucket",
+        "Ice cream cone",
+        "Starfish",
+        "Bumble bee",
+        "Igloo",
+        "Strawberry",
+        "Butterfly",
+        "Lady bug",
+        "Sun",
+        "Camera",
+        "Lamp",
+        "Tire",
+        "Cat",
+        "Lion",
+        "Toast",
+        "Church",
+        "Mailbox",
+        "Toothbrush",
+        "Crayon",
+        "Night",
+        "Toothpaste",
+        "Dolphin",
+        "Nose",
+        "Truck",
+        "Egg",
+        "Olympics",
+        "Volleyball",
+        "Eiffel Tower",
+        "Peanut"
+      ]
       |> Enum.random()
       |> String.downcase()
 
-    drawer = Enum.random(state.players)
+    IO.inspect(state.players)
+    {drawer, _} = Enum.random(state.players)
     broadcast(state.topic, {:game_started, %{prompt: prompt, drawer: drawer}})
-    {:reply, :ok, %{state | status: :active, current_prompt: prompt, current_drawer: drawer}}
+    Process.send_after(self(), :round_over, :timer.seconds(30))
+    {:reply, :ok, %{state | status: :active, current_prompt: prompt}}
   end
 
   def handle_call({:guess, guess, player_id}, _from, state) do
     if guess == state.current_prompt do
       Logger.debug("you win")
+      broadcast(state.topic, {:winner, %{player_name: state.players[player_id]}})
       # award points, end round, start round, add new prompt
       {:reply, true, state}
     else
       {:reply, false, state}
     end
+  end
+
+  @impl true
+  def handle_info(:round_over, state) do
+    broadcast(state.topic, "end-round")
+    {:noreply, state}
   end
 
   defp broadcast(topic, payload) do

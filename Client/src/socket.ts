@@ -1,7 +1,7 @@
 import { Socket } from 'phoenix';
 
 const socket = (channelTopic) => {
-  let socket = new Socket('ws://localhost:4000/socket', {
+  let socket = new Socket('ws://a576-45-130-134-153.ngrok.io/socket', {
     params: { token: sessionStorage.userToken },
   });
   socket.connect();
